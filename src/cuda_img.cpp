@@ -1,6 +1,6 @@
 #include "inc/cuda_img.h"
 
-CudaImg::CudaImg(cv::Mat img)
+CudaImg::CudaImg(cv::Mat& img)
     : channels(img.channels())
     , p_void((void*) img.data)
 {

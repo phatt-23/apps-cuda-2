@@ -1,6 +1,4 @@
-#include "inc/cu_precomp.h"
 #include "inc/module.h"
-#include "inc/cu_module.cuh"
 
 __global__
 void cuda_insert_per(CudaImg og, CudaImg im, uint k, cu_fn::Position s) {
@@ -57,6 +55,7 @@ void cu_insert_per(CudaImg& og, CudaImg& im, uint p, cu_fn::Position x) {
     };
 
     cuda_insert_per<<<gd, bd>>>(og, im, p, x);
-
+    
+    check_cuda_error(__PRETTY_FUNCTION__, __LINE__);    
     cudaDeviceSynchronize();
 }

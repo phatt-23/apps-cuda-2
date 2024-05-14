@@ -1,5 +1,4 @@
 #include "inc/module.h"
-#include "inc/cu_precomp.h"
 
 __global__
 void cuda_mirror(CudaImg og, cu_fn::Mirror option) {
@@ -23,7 +22,7 @@ void cuda_mirror(CudaImg og, cu_fn::Mirror option) {
 }
 
 __host__
-void cu_mirror(CudaImg og, cu_fn::Mirror option) {
+void cu_mirror(CudaImg& og, cu_fn::Mirror option) {
     dim3 bd;
     // 1024 = 2^10
     for(size_t i = 10; i > 0; i--) {
@@ -61,6 +60,7 @@ void cu_mirror(CudaImg og, cu_fn::Mirror option) {
         gd.x, gd.y, gd.z);
 
     cuda_mirror<<< gd, bd >>>(og, option);
-    
+
+    check_cuda_error(__PRETTY_FUNCTION__, __LINE__);    
     cudaDeviceSynchronize();
 }

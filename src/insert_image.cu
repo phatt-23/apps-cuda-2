@@ -1,10 +1,8 @@
 #include "inc/module.h"
-#include "inc/cu_module.cuh"
 
-static void check_within_bounds(const char *func_name, const uint3 &big_size, const uint3 &small_size, const uint2 &pos)
+inline static void check_within_bounds(const char *func_name, const uint3 &big_size, const uint3 &small_size, const uint2 &pos)
 {
-    // check if the big is bigger than small
-    if(__DEBUG_FUNC_NAME_GRID_DIM_GRID_DIM_INFO) {
+    if (__DEBUG_INFO_CU_INSERT_IMAGE) {
         if (big_size.x - small_size.x > pos.x >= 0 &&
             big_size.y - small_size.y > pos.y >= 0)
         {
@@ -18,21 +16,11 @@ static void check_within_bounds(const char *func_name, const uint3 &big_size, co
         }
     }
 }
-
-void check_cuda_error(const char *func_name, int line)
-{
-    cudaError_t cerr;
-    if ((cerr = cudaGetLastError()) != cudaSuccess)
-    {
-        printf("CUDA Error: in fn '%s'\n  [%d] => '%s'\n", func_name, line, cudaGetErrorString(cerr));
-    }
-}
-
 //
 //
 //
-
-__global__ void cuda_kernel_insert_rgb_image(CudaImg big, CudaImg small, uint2 pos, float alpha)
+__global__ 
+void cuda_kernel_insert_rgb_image(CudaImg big, CudaImg small, uint2 pos, float alpha)
 {
     uint2 s = {
         .x = blockDim.x * blockIdx.x + threadIdx.x,
@@ -57,7 +45,8 @@ __global__ void cuda_kernel_insert_rgb_image(CudaImg big, CudaImg small, uint2 p
     big.at3(b.x, b.y) = np;
 }
 
-void cu_insert_rgb_image(CudaImg big, CudaImg small, uint2 pos, uint8_t alpha)
+__host__
+void cu_insert_rgb_image(CudaImg& big, CudaImg& small, uint2 pos, uint8_t alpha)
 {
     // check if the images are of 3 channels
     if (big.channels != 3 || small.channels != 3)
@@ -76,12 +65,11 @@ void cu_insert_rgb_image(CudaImg big, CudaImg small, uint2 pos, uint8_t alpha)
     check_cuda_error(__PRETTY_FUNCTION__, __LINE__);
     cudaDeviceSynchronize();
 }
-
 //
 //
 //
-
-__global__ void cuda_kernel_insert_rgba_image(CudaImg big, CudaImg small, uint2 pos, float alpha)
+__global__ 
+void cuda_kernel_insert_rgba_image(CudaImg big, CudaImg small, uint2 pos, float alpha)
 {
     uint2 s = {
         .x = blockDim.x * blockIdx.x + threadIdx.x,
@@ -114,7 +102,8 @@ __global__ void cuda_kernel_insert_rgba_image(CudaImg big, CudaImg small, uint2 
     big.at3(b.x, b.y).z = (uchar)np.z;
 }
 
-void cu_insert_rgba_image(CudaImg big, CudaImg small, uint2 pos, uint8_t alpha)
+__host__
+void cu_insert_rgba_image(CudaImg& big, CudaImg& small, uint2 pos, uint8_t alpha)
 {
     check_within_bounds(__PRETTY_FUNCTION__, big.size, small.size, pos);
 
@@ -122,10 +111,16 @@ void cu_insert_rgba_image(CudaImg big, CudaImg small, uint2 pos, uint8_t alpha)
     find_optimal2(gd, bd, mat_size);
     func_gd_bd_info("cu_insert_rgba_image", gd, bd);
 
-    if (small.channels == 3)
-        cuda_kernel_insert_rgb_image<<<gd, bd>>>(big, small, pos, alpha);
-    else if (small.channels == 4)
-        cuda_kernel_insert_rgba_image<<<gd, bd>>>(big, small, pos, alpha);
+    switch(small.channels) {
+        case(3): {
+            cuda_kernel_insert_rgb_image<<<gd, bd>>>(big, small, pos, alpha);
+            break;
+        }
+        case(4): {
+            cuda_kernel_insert_rgba_image<<<gd, bd>>>(big, small, pos, alpha);
+            break;
+        }
+    }
 
     check_cuda_error(__PRETTY_FUNCTION__, __LINE__);
     cudaDeviceSynchronize();

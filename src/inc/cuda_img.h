@@ -15,7 +15,7 @@ struct CudaImg {
         uchar3 *p_uchar3;   // data of picture
         uchar4 *p_uchar4;   // data of picture
     };
-    CudaImg(cv::Mat img);  // constructor
+    CudaImg(cv::Mat& img);  // constructor
 
     // coordinate getters
     __device__ uchar1& at1(int x, int y) { return p_uchar1[y * size.x + x]; }

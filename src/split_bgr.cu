@@ -1,5 +1,4 @@
-#include "inc/cu_precomp.h"
-#include "inc/cuda_img.h"
+#include "inc/module.h"
 
 __global__
 void cuda_split_bgr(CudaImg og, CudaImg b, CudaImg g, CudaImg r) {
@@ -21,7 +20,7 @@ void cuda_split_bgr(CudaImg og, CudaImg b, CudaImg g, CudaImg r) {
 }
 
 __host__
-void cu_split_bgr(CudaImg og, CudaImg b, CudaImg g, CudaImg r) {
+void cu_split_bgr(CudaImg& og, CudaImg& b, CudaImg& g, CudaImg& r) {
     dim3 block_dim(
         16, 16, 1
     );
@@ -33,6 +32,7 @@ void cu_split_bgr(CudaImg og, CudaImg b, CudaImg g, CudaImg r) {
 
     cuda_split_bgr<<<grid_dim, block_dim>>>(og, b, g, r);
 
+    check_cuda_error(__PRETTY_FUNCTION__, __LINE__);    
     cudaDeviceSynchronize();
 }
 

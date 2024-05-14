@@ -1,5 +1,23 @@
 #include "inc/module.h"
-#include "inc/cu_module.cuh"
+
+__device__
+uchar1 bilinear_point1(CudaImg og, float2 o, float2 d)
+{
+    uchar1 p00 = og.at1(    (int)o.x,     (int)o.y); // top left
+    uchar1 p01 = og.at1(    (int)o.x, 1 + (int)o.y); // bottom left
+    uchar1 p10 = og.at1(1 + (int)o.x,     (int)o.y); // top right
+    uchar1 p11 = og.at1(1 + (int)o.x, 1 + (int)o.y); // bottom right
+
+    uchar1 p = { // pixel to be put inside resized image
+        .x = (uchar)
+             (p00.x * (1 - d.x) * (1 - d.y) +
+              p10.x * (d.x)     * (1 - d.y) +
+              p01.x * (1 - d.x) * (d.y) +
+              p11.x * (d.x)     * (d.y)), 
+    };
+
+    return p; 
+}
 
 __device__
 uchar3 bilinear_point3(CudaImg og, float2 o, float2 d)
@@ -65,6 +83,29 @@ uchar4 bilinear_point4(CudaImg og, float2 o, float2 d)
 }
 
 __global__
+void cuda_kernel_bilinear_resize1(CudaImg resized, CudaImg og, float2 scale)
+{
+    float2 r = { // resized image coordinate
+        .x = float(blockIdx.x * blockDim.x + threadIdx.x),
+        .y = float(blockIdx.y * blockDim.y + threadIdx.y),
+    };
+    if(r.x >= resized.size.x || r.y >= resized.size.y) return;
+
+    float2 o = { // original image coordinate relative to 'r'
+        .x = r.x * scale.x,
+        .y = r.y * scale.y,
+    };
+    if(o.x >= og.size.x || o.y >= og.size.y) return;
+    
+    float2 d = { // difference from the 'original' coordinate
+        .x = o.x - (int)o.x,
+        .y = o.y - (int)o.y,
+    };
+
+    resized.at1(r.x, r.y) = bilinear_point1(og, o, d); // putting pixel inside
+}
+
+__global__
 void cuda_kernel_bilinear_resize3(CudaImg resized, CudaImg og, float2 scale)
 {
     float2 r = { // resized image coordinate
@@ -110,8 +151,12 @@ void cuda_kernel_bilinear_resize4(CudaImg resized, CudaImg og, float2 scale)
     resized.at4(r.x, r.y) = bilinear_point4(og, o, d); // putting pixel inside
 }
 
-void cu_bilinear_resize(CudaImg resized, CudaImg og)
+void cu_bilinear_resize(CudaImg& resized, CudaImg& og)
 {
+    if(resized.channels != og.channels) {
+        printf("ERROR: 'cu_bilinear_resize' - CudaImages resized and og differ in channel!\n");
+        return;
+    }
     dim3 gd, bd, mat_size(resized.size.x, resized.size.y);
     find_optimal2(gd, bd, mat_size);
     func_gd_bd_info("cu_bilinear_resize", gd, bd);
@@ -120,17 +165,23 @@ void cu_bilinear_resize(CudaImg resized, CudaImg og)
         .x = (og.size.x - 1) / float(resized.size.x),
         .y = (og.size.y - 1) / float(resized.size.y),
     };
-    
-    if(resized.channels == 3)
-        cuda_kernel_bilinear_resize3<<<gd, bd>>>(resized, og, scale);
-    else if(resized.channels == 4)   
-        cuda_kernel_bilinear_resize4<<<gd, bd>>>(resized, og, scale);
 
-    cudaError_t cu_err;
-    if((cu_err = cudaGetLastError()) != cudaSuccess) {
-        printf("CUDA ERROR: %s, %d => %s\n", __FILE__, __LINE__, cudaGetErrorString(cu_err));
+    switch(resized.channels) {
+        case(1): {
+            cuda_kernel_bilinear_resize1<<<gd, bd>>>(resized, og, scale);
+            break;
+        }
+        case(3): {
+            cuda_kernel_bilinear_resize3<<<gd, bd>>>(resized, og, scale);
+            break;
+        }
+        case(4): {
+            cuda_kernel_bilinear_resize4<<<gd, bd>>>(resized, og, scale);
+            break;
+        }    
     }
-    
+
+    check_cuda_error(__PRETTY_FUNCTION__, __LINE__);    
     cudaDeviceSynchronize();
 }
 

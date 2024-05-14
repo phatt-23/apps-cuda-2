@@ -1,6 +1,4 @@
-#include "inc/cu_precomp.h"
 #include "inc/module.h"
-#include "inc/cu_module.cuh"
 
 __global__
 void cuda_scale2x_img(CudaImg og, CudaImg sc, cu_fn::Axis a) {
@@ -11,11 +9,6 @@ void cuda_scale2x_img(CudaImg og, CudaImg sc, cu_fn::Axis a) {
 
     if(p.x >= og.size.x || p.y >= og.size.y) return;
 
-
-    // sc.at4( 2*p.x,       2*p.y       ) = og.at4(p.x, p.y);
-    // sc.at4( 2*(p.x + 1), 2*p.y       ) = og.at4(p.x, p.y);
-    // sc.at4( 2*p.x,       2*(p.y + 1) ) = og.at4(p.x, p.y);
-    // sc.at4( 2*(p.x + 1), 2*(p.y + 1) ) = og.at4(p.x, p.y);
     switch (a) {
         case cu_fn::axis_x:
             sc.at3( p.x + p.x + 1, p.y ) = og.at3( p.x, p.y );
@@ -31,7 +24,7 @@ void cuda_scale2x_img(CudaImg og, CudaImg sc, cu_fn::Axis a) {
 }
 
 __host__
-cv::Mat cu_scale2x_img(CudaImg og, cu_fn::Axis a) {
+cv::Mat cu_scale2x_img(CudaImg& og, cu_fn::Axis a) {
     dim3 gd;
     dim3 bd;
     dim3 mat_size(og.size.x, og.size.y);
@@ -55,7 +48,8 @@ cv::Mat cu_scale2x_img(CudaImg og, cu_fn::Axis a) {
     func_gd_bd_info("cu_scale2x_img", gd, bd);
 
     cuda_scale2x_img<<<gd, bd>>>(og, scaled, a);
-
+    
+    check_cuda_error(__PRETTY_FUNCTION__, __LINE__);    
     cudaDeviceSynchronize();
     return cv_scaled;
 }

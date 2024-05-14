@@ -1,4 +1,3 @@
-#include "inc/cu_precomp.h"
 #include "inc/module.h"
 
 __global__
@@ -14,7 +13,7 @@ void cuda_transpone(CudaImg og, CudaImg rot) {
 }
 
 __host__
-void cu_sq_rotate(CudaImg og, CudaImg rot, cu_fn::Direction option) {
+void cu_sq_rotate(CudaImg& og, CudaImg& rot, cu_fn::Direction option) {
     // int id = cudaGetDevice(&id);
     
     dim3 bd;
@@ -53,5 +52,6 @@ void cu_sq_rotate(CudaImg og, CudaImg rot, cu_fn::Direction option) {
         default: break;
     };
 
+    check_cuda_error(__PRETTY_FUNCTION__, __LINE__);    
     cudaDeviceSynchronize();
 }

@@ -1,9 +1,10 @@
 #include "inc/canvas.h"
+#include "inc/module.h"
 
 Canvas::Canvas(const char* name, cv::Mat& cv_background, uint2 canvas_size)
     : name(name)
-    , cv_canvas(cv::Mat::zeros(cv::Size(canvas_size.x, canvas_size.y), CV_8UC3)) 
-    , size(canvas_size) 
+    , cv_canvas(cv::Mat::zeros(cv::Size(canvas_size.y, canvas_size.x), CV_8UC3)) 
+    , size({canvas_size.y, canvas_size.x}) 
     , bg_image(cv_background)
     , canvas(cv_canvas)
 {

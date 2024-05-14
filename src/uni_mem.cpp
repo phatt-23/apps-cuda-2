@@ -1,10 +1,7 @@
 #include "inc/uni_mem.h"
-
 #include <cuda_runtime.h>
 
-cv::UMatData* UniformAllocator::allocate(int dims, const int* sizes, int type,
-                   void* data0, size_t* step,
-                   AccessFlag_v_3_4 /*flags*/, cv::UMatUsageFlags /*usageFlags*/) const 
+cv::UMatData* UniformAllocator::allocate(int dims, const int* sizes, int type, void* data0, size_t* step, AccessFlag_v_3_4, cv::UMatUsageFlags) const 
 {
     size_t total = CV_ELEM_SIZE(type);
     for (int i = dims-1; i >= 0; i--) {

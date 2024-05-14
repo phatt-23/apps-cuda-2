@@ -1,6 +1,4 @@
-#include "inc/cu_precomp.h"
 #include "inc/module.h"
-#include "inc/cu_module.cuh"
 
 __global__
 void cuda_merge_half(CudaImg og, CudaImg im, uint option) {
@@ -30,7 +28,7 @@ void cuda_merge_half(CudaImg og, CudaImg im, uint option) {
     };
 }
 
-void cu_merge_half(CudaImg og, CudaImg im, cu_fn::MergeHalf option) {
+void cu_merge_half(CudaImg& og, CudaImg& im, cu_fn::MergeHalf option) {
     if(option > 7) {
         printf("ERROR: %s, the option can only be of [0..7], you gave %d\n", __PRETTY_FUNCTION__, option);
         return;
@@ -53,6 +51,7 @@ void cu_merge_half(CudaImg og, CudaImg im, cu_fn::MergeHalf option) {
     func_gd_bd_info("cu_merge_half", gd, bd);
 
     cuda_merge_half<<<gd, bd>>>(og, im, option);
-
+    
+    check_cuda_error(__PRETTY_FUNCTION__, __LINE__);    
     cudaDeviceSynchronize();
 }

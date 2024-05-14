@@ -18,7 +18,7 @@ void cuda_kernel_nearest_neighbour_resize(CudaImg resized, CudaImg og, float2 sc
     resized.at3(r.x, r.y) = og.at3(o.x, o.y);
 }
 
-void cu_nearest_neighbour_resize(CudaImg dest, CudaImg src)
+void cu_nearest_neighbour_resize(CudaImg& dest, CudaImg& src)
 {
     dim3 gd, bd, mat_size(dest.size.x, dest.size.y);
     find_optimal2(gd, bd, mat_size);
@@ -31,10 +31,6 @@ void cu_nearest_neighbour_resize(CudaImg dest, CudaImg src)
     };
     cuda_kernel_nearest_neighbour_resize<<<gd, bd>>>(dest, src, scale);
 
-    cudaError_t cu_err;
-    if((cu_err = cudaGetLastError()) != cudaSuccess) {
-        printf("CUDA ERROR: %s, %d => %s\n", __FILE__, __LINE__, cudaGetErrorString(cu_err));
-    }
-
+    check_cuda_error(__PRETTY_FUNCTION__, __LINE__);    
     cudaDeviceSynchronize(); 
 }

@@ -3,9 +3,9 @@ PROGRAM = program
 SRC_DIR = src
 OBJ_DIR = obj
 
-LDLIBS = $(shell pkgconf --libs cuda) 
+LDLIBS = $(shell pkgconf --libs cuda)
 IFLAGS_CUDA = $(shell pkgconf --cflags cuda)
-OPENCVLIB = $(shell pkgconf --list-package-names | grep opencv )
+OPENCVLIB = $(shell pkgconf --list-package-names | grep opencv)
 
 ifeq ($(OPENCVLIB),)
 all:

@@ -4,7 +4,6 @@
 #include "cuda_img.h"
 #include "cuda_rect.h"
 #include <iostream>
-#include "module.h"
 
 class Canvas
 {

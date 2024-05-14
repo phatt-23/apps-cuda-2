@@ -3,7 +3,6 @@
 
 #include <stdio.h>
 #include <sys/time.h>
-#include <time.h>
 #include <iostream>
 
 class Timing
@@ -11,9 +10,9 @@ class Timing
     public:
         int frame_duration;  
         int fps;
-        float delta_sec = 0.f; // time in seconds
+        float delta = 0.f; // time in seconds
         size_t iterations = 0; // number of iterations
-        timeval start, current, old, delta;
+        timeval _start, _current, _old, _delta;
         bool running;
 
         Timing();
