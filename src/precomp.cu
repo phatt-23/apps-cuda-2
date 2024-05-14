@@ -17,3 +17,11 @@ void find_optimal2(dim3& gd, dim3& bd, dim3& mat_size) {
     gd.x = ceil((mat_size.x + bd.x) / bd.x);
     gd.y = ceil((mat_size.y + bd.y) / bd.y);
 }
+
+void func_gd_bd_info(const char* func_name, dim3& gd, dim3& bd)
+{
+    if(__DEBUG_FUNC_NAME_GRID_DIM_GRID_DIM_INFO) {
+        printf("INFO: '%s' grid_dim: (%d, %d, %d), block_dim: (%d, %d, %d)\n",
+            func_name, gd.x, gd.y, gd.z, bd.x, bd.y, bd.z);
+    }
+}

@@ -6,7 +6,7 @@ Timing::Timing(int t_fps)
     , frame_duration(1.0 / t_fps * (float)1E6)
     , running(1)
 {
-    std::cout << "INFO: Timing created!" << std::endl;
+    std::cout << "INFO: Timing created! (FPS = " << this->fps << ")" << std::endl;
 	gettimeofday(&this->old, NULL);
 	this->start = this->old;
 }
@@ -16,6 +16,7 @@ Timing::Timing()
     , frame_duration(1.0 / 60.0 * (float)1E6)
     , running(1)
 {
+    std::cout << "INFO: Timing created! (FPS = " << this->fps << ")" << std::endl;
 	gettimeofday(&this->old, NULL);
 	this->start = this->old;
 }

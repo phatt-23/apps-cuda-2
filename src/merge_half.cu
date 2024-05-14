@@ -1,5 +1,6 @@
 #include "inc/cu_precomp.h"
 #include "inc/module.h"
+#include "inc/cu_module.cuh"
 
 __global__
 void cuda_merge_half(CudaImg og, CudaImg im, uint option) {
@@ -43,18 +44,13 @@ void cu_merge_half(CudaImg og, CudaImg im, cu_fn::MergeHalf option) {
     dim3 bd, gd;
     dim3 mat_size(og.size.x, og.size.y);
     find_optimal2(gd, bd, mat_size);
-    printf("INFO: grid_dim: (%d, %d, %d), block_dim: (%d, %d, %d)\n",
-        gd.x, gd.y, gd.z, bd.x, bd.y, bd.z
-    );
 
     if(option <= 3)    
         gd.x >>= 1;
     else if(option <= 7)
         gd.y >>= 1;
 
-    printf(">> INFO: grid_dim: (%d, %d, %d), block_dim: (%d, %d, %d)\n",
-        gd.x, gd.y, gd.z, bd.x, bd.y, bd.z
-    );
+    func_gd_bd_info("cu_merge_half", gd, bd);
 
     cuda_merge_half<<<gd, bd>>>(og, im, option);
 

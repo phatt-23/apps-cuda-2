@@ -1,5 +1,6 @@
 #include "inc/cu_precomp.h"
 #include "inc/module.h"
+#include "inc/cu_module.cuh"
 
 __global__
 void cuda_scale2x_img(CudaImg og, CudaImg sc, cu_fn::Axis a) {
@@ -50,9 +51,8 @@ cv::Mat cu_scale2x_img(CudaImg og, cu_fn::Axis a) {
         og.size.y, og.size.x);
     printf("INFO: Mat 2x       => cv::Size = (%d, %d)\n", 
         scaled.size.y, scaled.size.x);
-    printf("INFO: grid_dim: (%d, %d, %d), block_dim: (%d, %d, %d)\n",
-        gd.x, gd.y, gd.z, bd.x, bd.y, bd.z
-    );
+        
+    func_gd_bd_info("cu_scale2x_img", gd, bd);
 
     cuda_scale2x_img<<<gd, bd>>>(og, scaled, a);
 

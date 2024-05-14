@@ -8,7 +8,7 @@ Canvas::Canvas(const char* name, cv::Mat& cv_background, uint2 canvas_size)
     , canvas(cv_canvas)
 {
     this->flush();
-    std::cout << "INFO: Canvas created!" << std::endl;
+    std::cout << "INFO: Canvas created! (size = {" << this->size.y << "," << this->size.x << "})" << std::endl;
 }
 
 Canvas::~Canvas()
@@ -30,7 +30,6 @@ void Canvas::draw(CudaRect& rect) // draw a CudaRect to the canvas CudaImg
     CudaImg resized(cv_resized);
 
     cu_bilinear_resize(resized, og);
-
     cu_insert_rgba_image(this->canvas, resized, pos, rect.alpha);
 }
 

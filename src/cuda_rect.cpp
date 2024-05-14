@@ -1,21 +1,21 @@
 #include "inc/cuda_rect.h"
 
-CudaRect::CudaRect(cv::Mat& img, int2 pos, uint alpha)
-    : CudaImg(img), alpha(alpha), rsize({0, 0}), cv_mat_ptr(&img)
+CudaRect::CudaRect(cv::Mat& texture, int2 pos, uint alpha)
+    : CudaImg(texture), alpha(alpha), rsize({0, 0}), cv_mat_ptr(&texture)
 {
     this->pos.x = (float)pos.y;
     this->pos.y = (float)pos.x;
-    std::cout << "INFO: CudaRect created! -> ogsize = (" << this->size.y << ", " << this->size.x << ")" << std::endl;
+    std::cout << "INFO: CudaRect created! (ogsize = {" << this->size.y << "," << this->size.x << "})" << std::endl;
 }
 
-CudaRect::CudaRect(cv::Mat& img, uint2 rsize, int2 pos, uint alpha)
-    : CudaImg(img), alpha(alpha), cv_mat_ptr(&img)
+CudaRect::CudaRect(cv::Mat& texture, uint2 rsize, int2 pos, uint alpha)
+    : CudaImg(texture), alpha(alpha), cv_mat_ptr(&texture)
 {
     this->pos.x = (float)pos.y;
     this->pos.y = (float)pos.x;
     this->rsize.x = rsize.y;
     this->rsize.y = rsize.x;
-    std::cout << "INFO: CudaRect created with rsize = (" << this->rsize.y << ", " << this->rsize.x << ")! -> ogsize = (" << this->size.y << ", " << this->size.x << ")" << std::endl;
+    std::cout << "INFO: CudaRect created! (rsize = {" << this->rsize.y << "," << this->rsize.x << "}, ogsize = {" << this->size.y << "," << this->size.x << "})" << std::endl;
 }
 
 CudaRect::~CudaRect()

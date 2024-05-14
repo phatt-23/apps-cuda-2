@@ -1,5 +1,6 @@
 #include "inc/cu_precomp.h"
 #include "inc/module.h"
+#include "inc/cu_module.cuh"
 
 __global__
 void cuda_insert_per(CudaImg og, CudaImg im, uint k, cu_fn::Position s) {
@@ -37,10 +38,8 @@ void cu_insert_per(CudaImg& og, CudaImg& im, uint p, cu_fn::Position x) {
     dim3 m_size( og.size.x, og.size.y );
     dim3 gd, bd;
     find_optimal2(gd, bd, m_size);
+    func_gd_bd_info("cu_insert_per", gd, bd);
 
-    printf("INFO: insert_per => grid_dim: (%d, %d, %d), block_dim: (%d, %d, %d)\n",
-        gd.x, gd.y, gd.z, bd.x, bd.y, bd.z
-    );
     switch (x) {
         case cu_fn::pos_top:
             gd.y = ceil(gd.y * ((float)p/100.f)); 
@@ -56,9 +55,6 @@ void cu_insert_per(CudaImg& og, CudaImg& im, uint p, cu_fn::Position x) {
             break;
         default: break;
     };
-    printf(">>> INFO: insert_per => grid_dim: (%d, %d, %d), block_dim: (%d, %d, %d)\n",
-        gd.x, gd.y, gd.z, bd.x, bd.y, bd.z
-    );
 
     cuda_insert_per<<<gd, bd>>>(og, im, p, x);
 

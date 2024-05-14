@@ -12,8 +12,8 @@ class CudaRect : public CudaImg
         uint2 rsize;
         cv::Mat* cv_mat_ptr;
 
-        CudaRect(cv::Mat& img, int2 pos, uint alpha);
-        CudaRect(cv::Mat& img, uint2 rsize, int2 pos, uint alpha);
+        CudaRect(cv::Mat& texture, int2 pos, uint alpha);
+        CudaRect(cv::Mat& texture, uint2 rsize, int2 pos, uint alpha);
         ~CudaRect();
 
         void set_pos(float y, float x); // sets the pos to bhave these values

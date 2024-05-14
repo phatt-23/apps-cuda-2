@@ -1,4 +1,5 @@
 #include "inc/module.h"
+#include "inc/cu_module.cuh"
 
 __device__
 uchar3 bilinear_point3(CudaImg og, float2 o, float2 d)
@@ -113,9 +114,7 @@ void cu_bilinear_resize(CudaImg resized, CudaImg og)
 {
     dim3 gd, bd, mat_size(resized.size.x, resized.size.y);
     find_optimal2(gd, bd, mat_size);
-    printf("INFO: grid_dim: (%d, %d, %d), block_dim: (%d, %d, %d)\n",
-        gd.x, gd.y, gd.z, bd.x, bd.y, bd.z
-    );
+    func_gd_bd_info("cu_bilinear_resize", gd, bd);
 
     float2 scale = { // scale in 'x' and 'y' axes
         .x = (og.size.x - 1) / float(resized.size.x),
