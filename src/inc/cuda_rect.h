@@ -7,7 +7,6 @@
 class CudaRect : public CudaImg
 {
     public:
-        cv::Mat* cv_mat_ptr;
         uint2 rsize;
         float2 pos;
         uint alpha;

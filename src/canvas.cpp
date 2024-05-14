@@ -1,15 +1,17 @@
 #include "inc/canvas.h"
 #include "inc/module.h"
 
-Canvas::Canvas(const char* name, cv::Mat& cv_background, uint2 canvas_size)
+Canvas::Canvas(const char* name, cv::Mat& cv_background, uint2 canvas_size, size_t flags)
     : name(name)
-    , cv_canvas(cv::Mat::zeros(cv::Size(canvas_size.y, canvas_size.x), CV_8UC3)) 
+    , cv_canvas(cv::Mat::zeros(cv::Size(canvas_size.y, canvas_size.x), flags)) 
     , size({canvas_size.y, canvas_size.x}) 
     , bg_image(cv_background)
-    , canvas(cv_canvas)
+    , canvas(cv_canvas)  
 {
     this->flush();
-    std::cout << "INFO: Canvas created! (size = {" << this->size.y << "," << this->size.x << "})" << std::endl;
+    std::cout << "INFO: Canvas created! (size = {" 
+        << this->size.y << "," << this->size.x << "}, type = " 
+        << ((flags == CV_8UC3) ? "RGB" : "RGBA") << ")" << std::endl;
 }
 
 Canvas::~Canvas()
@@ -26,7 +28,7 @@ void Canvas::draw(CudaRect& rect) // draw a CudaRect to the canvas CudaImg
         return;
     }
 
-    CudaImg og(*rect.cv_mat_ptr);
+    CudaImg og(*rect.p_cv_mat);
     cv::Mat cv_resized = cv::Mat(cv::Size(rect.rsize.x, rect.rsize.y), (rect.channels - 1)*8);
     CudaImg resized(cv_resized);
 

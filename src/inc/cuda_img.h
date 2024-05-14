@@ -9,6 +9,7 @@
 struct CudaImg {
     uint3 size;             // size of picture
     uint channels;          // size of pixel
+    cv::Mat* p_cv_mat;      // pointer to its cv::Mat
     union {
         void   *p_void;     // data of picture
         uchar1 *p_uchar1;   // data of picture

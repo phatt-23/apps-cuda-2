@@ -2,7 +2,94 @@
 #include "inc/canvas.h"
 #include "inc/timing.h"
 
+inline int randi32(int bottom, int upper)
+{
+    return rand() % (upper - bottom) + bottom;
+}
 
+int main(int argc, char** argv) {
+    __DEBUG_INFO_CU_INSERT_IMAGE = 1; // toggle debug console printout
+    __DEBUG_INFO_KERNEL_LAUNCH   = 0;
+    UniformAllocator allc;
+    cv::Mat::setDefaultAllocator(&allc);
+
+    std::vector<cv::Mat> textures = { // load in textures
+        cv::imread("assets/reptile.jpg",   cv::IMREAD_UNCHANGED), // 0
+        cv::imread("assets/abstract.jpg",  cv::IMREAD_UNCHANGED), // 1
+        cv::imread("assets/cubes.png",     cv::IMREAD_UNCHANGED), // 2
+        cv::imread("assets/motorist.jpg",  cv::IMREAD_UNCHANGED), // 3
+        cv::imread("assets/ball.png",      cv::IMREAD_UNCHANGED), // 4
+        cv::imread("assets/landscape.jpg", cv::IMREAD_UNCHANGED), // 5
+        cv::Mat::zeros({150,450}, CV_8UC4), // 6 - snowman
+        cv::Mat::zeros({800,700}, CV_8UC3), // 7
+    };
+
+    CudaImg img_bg(textures[5]);
+    CudaImg img_ball(textures[4]);
+    CudaImg img_snowman(textures[6]);
+
+    Canvas snowman("snowman", textures[6], {textures[6].rows, textures[6].cols}, CV_8UC4);
+
+    CudaRect bottom(textures[4],{snowman.size.y - 150, 0}, {150, 150});
+    CudaRect torso(textures[4],
+        { snowman.size.y - bottom.rsize.y - 120, 
+          ((snowman.size.x - 120) / 2) }, 
+        {120, 120}
+    );
+    CudaRect head(textures[4],
+        { snowman.size.y - bottom.rsize.y - torso.rsize.y - 90, 
+          ((snowman.size.x - 90) / 2) }, 
+        {90, 90}
+    );
+
+    snowman.draw(bottom);
+    snowman.draw(torso);
+    snowman.draw(head);
+
+
+    // cu_insert_rgba_image(img_bg, snowman.canvas, {0}, 255);
+
+    // skok
+    Canvas anim("aanim", *img_bg.p_cv_mat, {720,1080});
+
+    Timing t(60);
+    int direction = -1;
+    CudaRect rect_snowman(*snowman.canvas.p_cv_mat, {anim.size.y - 120, 300}, {120, 90});
+    
+    while(t.running) {
+        if (!t.next()) continue;
+
+        if(rect_snowman.pos.y < 300)
+            direction = 1;
+        else if(rect_snowman.pos.y + rect_snowman.rsize.y > anim.size.y) {
+            direction = -1;
+            break;
+        }
+        
+        rect_snowman.add_pos(direction * 200 * t.delta, 0);
+
+        anim.flush();
+        anim.draw(rect_snowman);
+        anim.show();
+    }
+
+    for (int i = 0; i < 50; i++)
+    {
+        cv::waitKey(50);
+        rect_snowman.set_pos(
+            randi32(0, anim.size.y - rect_snowman.rsize.y),
+            randi32(0, anim.size.x - rect_snowman.rsize.x)
+        ); 
+        anim.draw(rect_snowman);
+        anim.show();
+    }
+
+    cv::waitKey(0);
+    return 0;
+}
+
+
+#if 0
 int main(int argc, char** argv) {
     __DEBUG_INFO_CU_INSERT_IMAGE = 0; // toggle debug console printout
     __DEBUG_INFO_KERNEL_LAUNCH   = 0;
@@ -47,30 +134,7 @@ int main(int argc, char** argv) {
 
     return 0;
 }
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
+#endif
 
 
 

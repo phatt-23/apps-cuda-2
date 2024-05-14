@@ -101,6 +101,48 @@ void cuda_kernel_insert_rgba_image(CudaImg big, CudaImg small, uint2 pos, float 
     big.at3(b.x, b.y).y = (uchar)np.y;
     big.at3(b.x, b.y).z = (uchar)np.z;
 }
+//
+//
+__global__ 
+void cuda_kernel_insert_rgba_image_in_rgba_image(CudaImg big, CudaImg small, uint2 pos, float alpha)
+{
+    uint2 s = {
+        .x = blockDim.x * blockIdx.x + threadIdx.x,
+        .y = blockDim.y * blockIdx.y + threadIdx.y,
+    };
+    uint2 b = {.x = pos.x + s.x,
+               .y = pos.y + s.y};
+
+    if (s.x >= small.size.x || s.y >= small.size.y) return;
+    if (b.x >= big.size.x || b.y >= big.size.y) return;
+
+    big.at4(b.x, b.y) = small.at4(s.x, s.y);
+}
+
+__global__ 
+void cuda_kernel_insert_rgb_image_in_rgba_image(CudaImg big, CudaImg small, uint2 pos, float alpha)
+{
+    uint2 s = {
+        .x = blockDim.x * blockIdx.x + threadIdx.x,
+        .y = blockDim.y * blockIdx.y + threadIdx.y,
+    };
+    uint2 b = {.x = pos.x + s.x,
+               .y = pos.y + s.y};
+
+    if (s.x >= small.size.x || s.y >= small.size.y) return;
+    if (b.x >= big.size.x || b.y >= big.size.y) return;
+
+    uchar3 np = small.at3(s.x, s.y);
+    big.at4(b.x, b.y) = make_uchar4(np.x, np.y, np.z, uchar(alpha/(float)255));
+}
+
+typedef void (*kernel_func)(CudaImg big, CudaImg small, uint2 pos, float alpha);
+static kernel_func insert_image_kernel_funcs[4] = {
+    &cuda_kernel_insert_rgb_image,                  // 00
+    &cuda_kernel_insert_rgb_image_in_rgba_image,    // 01
+    &cuda_kernel_insert_rgba_image,                 // 10
+    &cuda_kernel_insert_rgba_image_in_rgba_image,   // 11
+};
 
 __host__
 void cu_insert_rgba_image(CudaImg& big, CudaImg& small, uint2 pos, uint8_t alpha)
@@ -111,16 +153,11 @@ void cu_insert_rgba_image(CudaImg& big, CudaImg& small, uint2 pos, uint8_t alpha
     find_optimal2(gd, bd, mat_size);
     func_gd_bd_info("cu_insert_rgba_image", gd, bd);
 
-    switch(small.channels) {
-        case(3): {
-            cuda_kernel_insert_rgb_image<<<gd, bd>>>(big, small, pos, alpha);
-            break;
-        }
-        case(4): {
-            cuda_kernel_insert_rgba_image<<<gd, bd>>>(big, small, pos, alpha);
-            break;
-        }
-    }
+    uint index = 0;
+    if(big.channels == 4)   index |= 0b01;
+    if(small.channels == 4) index |= 0b10;
+
+    insert_image_kernel_funcs[index]<<<gd, bd>>>(big, small, pos, alpha);
 
     check_cuda_error(__PRETTY_FUNCTION__, __LINE__);
     cudaDeviceSynchronize();
